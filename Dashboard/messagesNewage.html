@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
+    <title>Dashboard</title>
+    <style>
+        .navbar {
+            display: none;
+        }
+
+        @media screen and (max-width: 774px) {
+            .navbar {
+                display: block;
+            }
+
+            .main {
+                margin-top: 5rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+                <span class="navbar-toggler-icon" data-bs-target="#sidebar"></span>
+            </button>
+        </div>
+    </nav>
+    <div class="offcanvas offcanvas-start sidebar-nav bg-white" id="sidebar">
+        <div class="offcanvas-body px-0">
+            <nav class="navbar-dark">
+                <h4 class="mt-5 pt-5 mb-5 pb-5 text-center text-dark">
+                    <span class="text-center text-primary"></span><span>Newage Dispatch</span>
+                </h4>
+                <hr class="dropdown-divider bg-light mt-5">
+                <ul class="navbar-nav">
+                    <li><a href="messagesNewage.html" class="nav-link px-3 active"><i class="fas fa-envelope-open"></i>
+                            <span class="mx-2">Contact</span></a></li>
+
+                    <li><a href="logIn.html" class="nav-link px-3"><i class="far fa-sign-out"></i><span
+                                class="mx-2">Logout</span></a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <!-- Include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+
+    <!-- Your existing HTML code for the messages -->
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDavl2c0jOvV_ffHyCMfsWZjeAAP44WNIY",
+            authDomain: "contactform-f485f.firebaseapp.com",
+            databaseURL: "https://contactform-f485f-default-rtdb.firebaseio.com",
+            projectId: "contactform-f485f",
+            storageBucket: "contactform-f485f.appspot.com",
+            messagingSenderId: "650025216203",
+            appId: "1:650025216203:web:215b14ee37ebeae14c934e"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Reference database
+        const contactFormDB = firebase.database().ref("contactForm");
+
+        function fetchAndDisplayMessages() {
+            contactFormDB.once('value').then((snapshot) => {
+                // Clear previous messages
+                document.getElementById('messages').innerHTML = '';
+
+                // Iterate through each message
+                snapshot.forEach((childSnapshot) => {
+                    var message = childSnapshot.val();
+                    var messageId = childSnapshot.key;  // Get the message ID
+                    displayMessage(message, messageId);
+                });
+            });
+        }
+
+        // Function to display a single message
+        function displayMessage(message, messageId) {
+            var messageContainer = document.getElementById('messages');
+            var tableRow = document.createElement('tr');
+
+            // Format the date
+            var messageDate = new Date(message.date).toLocaleString();
+
+            // Customize the message display as needed
+            tableRow.innerHTML = `
+                <td>${message.name}</td>
+                <td>${message.phoneNo}</td>
+                <td>${message.email}</td>
+                <td>${message.description}</td>
+                <td>${messageDate}</td>
+                <td><button class="btn btn-danger" onclick="deleteMessage('${messageId}')">Delete</button></td>
+               
+            `;
+
+            messageContainer.appendChild(tableRow);
+        }
+
+        function viewMessage(messageContent) {
+            document.getElementById('modalBody').innerHTML = messageContent;
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
+        }
+        // Function to delete a message
+        function deleteMessage(messageId) {
+            contactFormDB.child(messageId).remove().then(() => {
+                fetchAndDisplayMessages();  // Refresh the message list after deletion
+            }).catch((error) => {
+                console.error("Error deleting message:", error);
+            });
+        }
+
+        // Fetch and display messages when the page loads
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayMessages);
+    </script>
+
+
+
+    <!-- Add a container to display messages -->
+
+    <main class="main mt-5">
+        <div class="container-fluid">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-9">
+                        <h4>Contact</h4>
+                        <p class="text-muted">You have the following Contact</p>
+                    </div>
+                </div>
+                <hr class="dropdown-divider bg-light my-4">
+                <div class="col-lg-12 mt-5">
+                    <h2 class="mb-4"><span class="text-primary">Messages</span> to Users</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Phone No</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Message Date</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messages">
+                            <!-- Messages will be displayed here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- The Modal -->
+    <div class="modal" id="myModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Message</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body" id="modalBody">
+                    <!-- Message content will be displayed here -->
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- JAVASCRIPT FILES -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.sticky.js"></script>
+    <script src="js/counter.js"></script>
+    <script src="js/custom.js"></script>
+    <script src="bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
